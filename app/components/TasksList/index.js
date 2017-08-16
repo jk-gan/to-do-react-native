@@ -3,7 +3,8 @@ import {
   ListView,
   Text,
   TextInput,
-  View
+  View,
+  AsyncStorage
 } from 'react-native';
 import styles from './styles';
 
@@ -23,11 +24,26 @@ export default class TasksList extends Component {
     };
   }
 
-  _addTask() {
+  componentDidMount() {
+    this._updateList();
+  }
+
+  async _addTask() {
     const listOfTasks = [...this.state.listOfTasks, this.state.text];
+
+    await AsyncStorage.setItem('listOfTasks', JSON.stringify(listOfTasks));
+
+    this._updateList();
+  }
+
+  async _updateList() {
+    let response = await AsyncStorage.getItem('listOfTasks');
+    let listOfTasks = await JSON.parse(response) || [];
+
     this.setState({
       listOfTasks
     });
+
     this._changeTextInputValue('');
   }
 
