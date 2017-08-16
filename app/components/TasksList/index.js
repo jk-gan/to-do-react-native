@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import styles from './styles';
 
+import TasksListCell from '../TasksListCell';
+
 export default class TasksList extends Component {
   constructor(props) {
     super(props);
@@ -29,6 +31,11 @@ export default class TasksList extends Component {
   }
 
   async _addTask() {
+    const singleTask = {
+      completed: false,
+      text: this.state.text
+    };
+
     const listOfTasks = [...this.state.listOfTasks, this.state.text];
 
     await AsyncStorage.setItem('listOfTasks', JSON.stringify(listOfTasks));
@@ -53,10 +60,28 @@ export default class TasksList extends Component {
     });
   }
 
-  _renderRowDate(rowData) {
+  _renderRowDate(rowData, rowID) {
     return (
-      <Text>{rowData}</Text>
+      <TasksListCell
+        completed={rowData.completed}
+        id={rowID}
+        onPress={(rowID) => this._completeTask(rowID)}
+        text={rowData.text}
+      />
     )
+  }
+
+  async _completeTask(rowID) {
+    const singleUpdatedTask = {
+      ...this.state.listOfTasks[rowID],
+      completed: !this.state.listOfTasks[rowID].completed
+    };
+
+    const listOfTasks = this.state.listOfTasks.slice();
+    listOfTasks[rowID] = singleUpdatedTask;
+
+    await AsyncStorage.setItem('listOfTasks', JSON.stringify(listOfTasks));
+    this._updateList();
   }
 
   render () {
@@ -76,7 +101,7 @@ export default class TasksList extends Component {
         <ListView
           dataSource={dataSource}
           enableEmptySections={true}
-          renderRow={(rowData) => this._renderRowDate(rowData)}
+          renderRow={(rowData, sectionID, rowID) => this._renderRowDate(rowData, rowID)}
         />
       </View>
     );
